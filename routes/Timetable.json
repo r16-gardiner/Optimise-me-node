@@ -85,38 +85,32 @@
         {"time": "18:00", "activity": "Walk","type": "Commute"}, 
         {"time": "18:30", "activity": "Walk","type": "Commute"},
         {"time": "19:00", "activity": "Eat","type": "Meal"},  
-        {"time": "19:30", "activity": "Eat","type": "Meal"},  
         {"time": "19:30", "activity": "Workout","type": "Exercise" }
     ],
     "Saturday": [
-        {"time": "08:30", "activity": "Breakfast", "type": "Meal"},
-        {"time": "09:00", "activity": "Shower", "type": "Personal Care"},
-        {"time": "09:30", "activity": "Travel", "type": "Commute"},
-        {"time": "11:00", "activity": "Phys Chem", "type": "Lecture", "subject": "Chemistry"},
-        {"time": "11:30", "activity": "Phys Chem","type": "Lecture", "subject": "Chemistry"},
-        {"time": "13:00", "activity": "Lunch","type": "Meal"},
-        {"time": "17:00", "activity": "Molecules","type": "Lecture", "subject": "Chemistry"},
-        {"time": "17:30", "activity": "Molecules","type": "Lecture", "subject": "Chemistry"},
-        {"time": "18:00", "activity": "Walk","type": "Commute"}, 
-        {"time": "18:30", "activity": "Walk","type": "Commute"},
-        {"time": "19:00", "activity": "Eat","type": "Meal"},  
-        {"time": "19:30", "activity": "Eat","type": "Meal"},  
-        {"time": "19:30", "activity": "Workout","type": "Exercise" }
+      {"time": "10:00", "activity": "Breakfast", "type": "Meal"},
+      {"time": "10:30", "activity": "Shower", "type": "Personal Care"},
+      {"time": "11:00", "activity": "Food Shop", "type": "Shop"},
+      {"time": "11:30", "activity": "Food Shop","type": "Shop"},
+      {"time": "13:00", "activity": "Lunch","type": "Meal"},
+      {"time": "16:30", "activity": "Gym","type": "Exercise"},  
+      {"time": "17:00", "activity": "Gym","type": "Exercise"},
+      {"time": "17:30", "activity": "Gym","type": "Exercise"},
+      {"time": "18:00", "activity": "Eat","type": "Meal"}
     ], 
     "Sunday": [
-        {"time": "08:30", "activity": "Breakfast", "type": "Meal"},
-        {"time": "09:00", "activity": "Shower", "type": "Personal Care"},
-        {"time": "09:30", "activity": "Travel", "type": "Commute"},
-        {"time": "11:00", "activity": "Phys Chem", "type": "Lecture", "subject": "Chemistry"},
-        {"time": "11:30", "activity": "Phys Chem","type": "Lecture", "subject": "Chemistry"},
+        {"time": "10:00", "activity": "Breakfast", "type": "Meal"},
+        {"time": "10:30", "activity": "Shower", "type": "Personal Care"},
+        {"time": "11:30", "activity": "Gym","type": "Exercise"},  
+        {"time": "12:00", "activity": "Gym","type": "Exercise"},
+        {"time": "12:30", "activity": "Gym","type": "Exercise"},
         {"time": "13:00", "activity": "Lunch","type": "Meal"},
-        {"time": "17:00", "activity": "Molecules","type": "Lecture", "subject": "Chemistry"},
-        {"time": "17:30", "activity": "Molecules","type": "Lecture", "subject": "Chemistry"},
-        {"time": "18:00", "activity": "Walk","type": "Commute"}, 
-        {"time": "18:30", "activity": "Walk","type": "Commute"},
-        {"time": "19:00", "activity": "Eat","type": "Meal"},  
-        {"time": "19:30", "activity": "Eat","type": "Meal"},  
-        {"time": "19:30", "activity": "Workout","type": "Exercise" }
+        {"time": "13:30", "activity": "Lunch","type": "Meal"},
+        {"time": "16:30", "activity": "Meal prep","type": "Cook"},
+        {"time": "17:00", "activity": "Meal prep","type": "Cook"},
+        {"time": "17:30", "activity": "Cook Salmon/ Meal prep","type": "Cook"},  
+        {"time": "18:00", "activity": "Eat","type": "Meal" }
+
     ]
 
   }
