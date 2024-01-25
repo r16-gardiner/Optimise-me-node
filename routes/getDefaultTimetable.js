@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const dataFilePath = path.join(__dirname, './Timetable.json'); // Adjust the path as necessary
-
+// this uses the template if needed
 function getDefaultTimetable(dateString) {
   return new Promise((resolve, reject) => {
     fs.readFile(dataFilePath, 'utf8', (err, data) => {
