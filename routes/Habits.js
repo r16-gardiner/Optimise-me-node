@@ -33,18 +33,19 @@ function mergeHabits(existingHabits, newHabits) {
 async function PostPhoneHabit(req, res) {
   try {
     const dataString = req.body['']; // Assuming the data is in req.body['']
+    console.log(dataString)
     const habitPairs = dataString.split('; '); // Split the string into pairs
     let habitsForDay = habitPairs.map(pair => {
         let [habit, status] = pair.split(', '); // Split each pair into habit and status
         return {
             name: habit.trim(),
-            completed: status.trim().toLowerCase() === 'true',
+            completed: (status.trim().toLowerCase() === 'true'|| status.trim().toLowerCase() === 'true;' ),
         };
     });
 
     const date = new Date().toISOString().split('T')[0]; // Store the current date in YYYY-MM-DD format
     const existingDocuments = await cosmosClient.getHabitData(date, date);
-
+    console.log(habitsForDay)
     // Assuming there should only be one document per day
     if (existingDocuments.length > 0) {
         const existingDocument = existingDocuments[0];
