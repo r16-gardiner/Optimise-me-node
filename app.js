@@ -11,7 +11,8 @@ const getDailyPlan = require('./routes/dailyPlan');
 const updateDailyPlan = require('./routes/updateDailyPlan');
 const aggregateTimeByType = require('./routes/timeByType')
 const app = express();
-const PostPhoneHabit = require('./routes/Habits')
+const PostPhoneHabit = require('./routes/Habits');
+const dailyUpdate = require('./routes/PhoneDailyAlert')
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -28,7 +29,7 @@ app.use(cors()); // Use CORS middleware to allow all origins
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
+app.use('/getHabitForCurrentTime',dailyUpdate),
 // Mount your custom route at the desired path
 app.use('/daily-plan', getDailyPlan);
 
