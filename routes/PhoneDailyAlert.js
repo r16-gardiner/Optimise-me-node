@@ -1,7 +1,7 @@
 const cosmosClient = require('./cosmosClient');
 const express = require('express');
 const router = express.Router();
-const moment = require('moment')
+
 // Function to get the current plan for the half-hour interval
 // Function to round the current time to the nearest half-hour
 // Function to get the current plan for the exact or next half-hour interval
