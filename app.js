@@ -29,7 +29,7 @@ app.use(cors()); // Use CORS middleware to allow all origins
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/getHabitForCurrentTime',dailyUpdate),
+app.use('/getHabitForCurrentTime',dailyUpdate);
 // Mount your custom route at the desired path
 app.use('/daily-plan', getDailyPlan);
 
