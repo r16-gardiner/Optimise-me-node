@@ -12,7 +12,11 @@ const updateDailyPlan = require('./routes/updateDailyPlan');
 const aggregateTimeByType = require('./routes/timeByType')
 const app = express();
 const PostPhoneHabit = require('./routes/Habits');
-const dailyUpdate = require('./routes/PhoneDailyAlert')
+const dailyUpdate = require('./routes/PhoneDailyAlert');
+const PostToDoList = require('./routes/ToDo');
+const GetToDoList = require('./routes/ToDo');
+const PushToDoList = require('./routes/ToDo');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -36,6 +40,14 @@ app.use('/daily-plan', getDailyPlan);
 app.use('/update-daily-plan', updateDailyPlan);
 app.use('/timetable-summary', aggregateTimeByType);
 app.use('/logHabitPhone', PostPhoneHabit);
+
+app.use('/logToDoData',PostToDoList );
+// Route to get to-do data
+app.get('/getToDoData', GetToDoList);
+
+
+// Route to update to-do data
+app.put('/updateToDoData', PushToDoList);
 
 app.post('/logHabit', async (req, res) => {
   try {

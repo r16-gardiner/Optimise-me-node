@@ -166,46 +166,6 @@ async function readContainer() {
   console.log(`Reading container:\n${containerDefinition.id}\n`)
 }
 
-/**
- * Scale a container
- * You can scale the throughput (RU/s) of your container up and down to meet the needs of the workload. Learn more: https://aka.ms/cosmos-request-units
- */
-// async function scaleContainer() {
-//   const { resource: containerDefinition } = await client
-//     .database(databaseId)
-//     .container(containerId)
-//     .read();
-  
-//   try
-//   {
-//       const {resources: offers} = await client.offers.readAll().fetchAll();
-  
-//       const newRups = 500;
-//       for (var offer of offers) {
-//         if (containerDefinition._rid !== offer.offerResourceId)
-//         {
-//             continue;
-//         }
-//         offer.content.offerThroughput = newRups;
-//         const offerToReplace = client.offer(offer.id);
-//         await offerToReplace.replace(offer);
-//         console.log(`Updated offer to ${newRups} RU/s\n`);
-//         break;
-//       }
-//   }
-//   catch(err)
-//   {
-//       if (err.code == 400)
-//       {
-//           console.log(`Cannot read container throuthput.\n`);
-//           console.log(err.body.message);
-//       }
-//       else 
-//       {
-//           throw err;
-//       }
-//   }
-// }
 
 
 /**
@@ -336,63 +296,6 @@ function exit(message) {
   process.stdin.on('data', process.exit.bind(process, 0))
 }
 
-// createDatabase()
-//   .then(() => readDatabase())
-//   .then(() => createContainer())
-//   .then(() => readContainer())
-//   .then(() => scaleContainer())
-//   .then(() => createFamilyItem(config.items.Andersen))
-//   .then(() => createFamilyItem(config.items.Wakefield))
-//   .then(() => queryContainer())
-//   .then(() => replaceFamilyItem(config.items.Andersen))
-//   .then(() => queryContainer())
-//   .then(() => deleteFamilyItem(config.items.Andersen))
-//   .then(() => {
-//     exit(`Completed successfully`)
-//   })
-//   .catch(error => {
-//     exit(`Completed with error ${JSON.stringify(error)}`)
-//   })
-
-// async function migrateData() {
-//   const database = client.database(databaseId);
-//   const container = database.container(habitsContainerId);
-
-//   try {
-//     // Fetch all existing habit documents
-//     const querySpec = {
-//       query: 'SELECT * FROM c'
-//     };
-//     const { resources: items } = await container.items.query(querySpec).fetchAll();
-
-//     // Aggregate habits by date
-//     const habitsByDate = {};
-//     items.forEach(item => {
-//       const date = item.date.split('T')[0]; // Assuming date is in ISO format
-//       if (!habitsByDate[date]) {
-//         habitsByDate[date] = [];
-//       }
-//       habitsByDate[date].push({
-//         name: item.habit,
-//         completed: item.completed
-//       });
-//     });
-
-//     // Create new documents in the new format
-//     for (const [date, habits] of Object.entries(habitsByDate)) {
-//       const newDoc = {
-//         date: date,
-//         habits: habits
-//       };
-//       await container.items.create(newDoc);
-//       console.log(`Migrated data for date: ${date}`);
-//     }
-
-//     console.log('Data migration completed successfully');
-//   } catch (error) {
-//     console.error('Migration failed:', error);
-//   }
-// }
 
 async function deleteOldHabitDocuments() {
   const database = client.database(databaseId);
@@ -419,7 +322,92 @@ async function deleteOldHabitDocuments() {
   }
 }
 
+const toDoListContainerId = 'ToDoToday'; // Define your to-do list container ID
 
+async function logToDoData(date, dailyToDoItems) {
+  const database = client.database(databaseId);
+  const container = database.container(toDoListContainerId);
+
+  const newToDoDocument = {
+    date: date,
+    dailyToDoItems: dailyToDoItems,
+  };
+
+  const { resource: createdItem } = await container.items.create(newToDoDocument);
+  console.log('To-Do list logged successfully for date:', date);
+}
+
+
+async function getToDoData(startDate, endDate) {
+  const database = client.database(databaseId);
+  const container = database.container(toDoListContainerId);
+
+  const querySpec = {
+    query: 'SELECT * FROM c WHERE c.date >= @startDate AND c.date <= @endDate',
+    parameters: [
+      { name: '@startDate', value: startDate },
+      { name: '@endDate', value: endDate }
+    ]
+  };
+
+  const { resources: items } = await container.items.query(querySpec).fetchAll();
+  return items;
+}
+async function updateToDoData(documentId, date, dailyToDoItems) {
+  const database = client.database(databaseId);
+  const container = database.container(toDoListContainerId);
+
+  try {
+    const { resource: existingDocument } = await container.item(documentId, documentId).read();
+    if (existingDocument) {
+      const updatedDocument = {
+        id: existingDocument.id,
+        date: date,
+        dailyToDoItems: dailyToDoItems, // Updated array of tasks
+      };
+
+      const { resource: updated } = await container.item(documentId, documentId).replace(updatedDocument);
+      console.log(`To-Do list document ${documentId} updated successfully.`);
+    } else {
+      console.log(`To-Do list document with ID ${documentId} not found.`);
+      throw new Error(`To-Do list document with ID ${documentId} not found.`);
+    }
+  } catch (error) {
+    console.error(`Error updating To-Do list document ${documentId}:`, error);
+    throw error;
+  }
+}
+/**
+ * Merges new to-do items with existing ones, updating completion status if necessary.
+ * If a to-do item from the new list matches an item in the existing list by name,
+ * the completion status of the existing item is updated. New items are added to the list.
+ * 
+ * @param {Array} existingToDoItems - Array of existing to-do items.
+ * @param {Array} newToDoItems - Array of new to-do items to be merged.
+ * @returns {Array} The merged array of to-do items.
+ */
+function mergeToDoItems(existingToDoItems, newToDoItems) {
+  const toDoMap = new Map();
+
+  // Add all existing to-do items to the map with their name as the key
+  existingToDoItems.forEach(item => {
+      toDoMap.set(item.name, item);
+  });
+
+  // Merge or update with new to-do items
+  newToDoItems.forEach(newItem => {
+      // If the item exists, update the 'completed' status
+      if (toDoMap.has(newItem.name)) {
+          toDoMap.get(newItem.name).completed = newItem.completed;
+      } else {
+          // If the item doesn't exist, add it to the map
+          toDoMap.set(newItem.name, newItem);
+      }
+  });
+
+  // Convert the map back to an array and return
+  return Array.from(toDoMap.values());
+}
 
 
 
@@ -439,6 +427,10 @@ module.exports = {
     logHabitData,
     updateHabitData,
     // migrateData,
-    deleteOldHabitDocuments
+    deleteOldHabitDocuments,
+    updateToDoData,
+    getToDoData,
+    logToDoData,
+    mergeToDoItems
 
   };
