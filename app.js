@@ -41,13 +41,13 @@ app.use('/update-daily-plan', updateDailyPlan);
 app.use('/timetable-summary', aggregateTimeByType);
 app.use('/logHabitPhone', PostPhoneHabit);
 
-app.use('/logToDoData',PostToDoList );
-// Route to get to-do data
-app.get('/getToDoData', GetToDoList);
+// app.use('/logToDoData',PostToDoList );
+// // Route to get to-do data
+// app.get('/getToDoData', GetToDoList);
 
 
-// Route to update to-do data
-app.put('/updateToDoData', PushToDoList);
+// // Route to update to-do data
+// app.put('/updateToDoData', PushToDoList);
 
 app.post('/logHabit', async (req, res) => {
   try {
