@@ -3,7 +3,7 @@ const cosmosClient = require('./cosmosClient');
 
 async function GetToDoList(req, res) {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, endDate } = req.query || new Date().toISOString().split('T')[0];
         const items = await cosmosClient.getToDoData(startDate, endDate);
         res.status(200).json(items);
       } catch (error) {
@@ -13,7 +13,7 @@ async function GetToDoList(req, res) {
 
 async function PushToDoList(req, res) {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, endDate } = req.query || new Date().toISOString().split('T')[0];
         const items = await cosmosClient.getToDoData(startDate, endDate);
         res.status(200).json(items);
       } catch (error) {
