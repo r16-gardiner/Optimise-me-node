@@ -353,6 +353,7 @@ async function getToDoData(startDate, endDate) {
   const { resources: items } = await container.items.query(querySpec).fetchAll();
   return items;
 }
+
 async function updateToDoData(documentId, date, dailyToDoItems) {
   const database = client.database(databaseId);
   const container = database.container(toDoListContainerId);
