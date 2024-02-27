@@ -1,44 +1,67 @@
 const cosmosClient = require('./cosmosClient');
-
+const express = require('express');
+const router = express.Router();
 
 async function GetToDoList(req, res) {
     try {
-        const { startDate, endDate } = req.query || new Date().toISOString().split('T')[0];
-        const items = await cosmosClient.getToDoData(startDate, endDate);
-        res.status(200).json(items);
+        const date = req.query.date || new Date().toISOString().split('T')[0];
+        const items = await cosmosClient.getToDoData(date);
+        if (items) {
+            res.json(items);
+            return;
+        }
       } catch (error) {
         res.status(500).send('Error retrieving to-do data: ' + error.message);
       }
 }
 
-async function PushToDoList(req, res) {
+async function DeleteToDoList(req, res) {
     try {
-        const { startDate, endDate } = req.query || new Date().toISOString().split('T')[0];
-        const items = await cosmosClient.getToDoData(startDate, endDate);
-        res.status(200).json(items);
-      } catch (error) {
-        res.status(500).send('Error retrieving to-do data: ' + error.message);
-      }
+        const date = req.query.date;
+        if (!date) {
+            res.status(400).send('Date query parameter is required');
+            return;
+        }
+
+        const existingDocuments = await cosmosClient.getToDoData(date);
+
+        if (existingDocuments.length > 0) {
+            await cosmosClient.deleteToDoData(date);
+            res.status(200).send(`To-Do list for ${date} deleted successfully`);
+        } else {
+            res.status(404).send('To-Do list not found for the specified date');
+        }
+    } catch (error) {
+        console.error('Error in DeleteToDoList:', error);
+        res.status(500).send('Error deleting to-do list: ' + error.message);
+    }
 }
+
 async function PostToDoList(req, res) {
     try {
-        // Assuming the to-do list data is in req.body as an array of { name, completed }
-        const toDoItems = req.body; // Directly using the parsed JSON body
-        console.log(toDoItems);
+        const date = req.body.date || new Date().toISOString().split('T')[0];
+        const newToDoItems = req.body.dailyToDoItems; // Assuming the body includes { date, dailyToDoItems }
 
-        const date = new Date().toISOString().split('T')[0]; // Store the current date in YYYY-MM-DD format
-        const existingDocuments = await cosmosClient.getToDoData(date, date);
-        
-        // Check if there's already a document for today
+        const existingDocuments = await cosmosClient.getToDoData(date);
+
         if (existingDocuments.length > 0) {
-            const existingDocument = existingDocuments[0];
-            // Assuming mergeToDoItems is a function you've created to merge today's to-do items
-            // with the existing ones (similar to mergeHabits)
-            const mergedToDoItems = mergeToDoItems(existingDocument.dailyToDoItems, toDoItems);
-            await cosmosClient.updateToDoData(existingDocument.id, date, mergedToDoItems);
+            const mergedToDoItems = cosmosClient.mergeToDoItems(existingDocuments[0].dailyToDoItems, newToDoItems);
+            // Update existing to-do list for the date with merged items
+            await cosmosClient.updateToDoData(date, mergedToDoItems);
+            // Assuming existingDocuments contains documents with a structure like { id, date, dailyToDoItems }
+            const existingToDoItems = existingDocuments[0].dailyToDoItems;
+
+            // If the new list is smaller or items have been removed, update directly
+            if (existingToDoItems.length < newToDoItems.length) {
+                // Update existing to-do list for the date with new items
+                await cosmosClient.updateToDoData(date, newToDoItems);
+            } else {
+                await cosmosClient.updateToDoData(date, newToDoItems);
+                console.log("Handling other scenarios if applicable");
+            }
         } else {
-            // Log new to-do list data for today
-            await cosmosClient.logToDoData(date, toDoItems);
+            // Create new to-do list data for the date
+            await cosmosClient.logToDoData(date, newToDoItems);
         }
 
         res.status(200).send('To-Do list processed successfully');
@@ -47,4 +70,5 @@ async function PostToDoList(req, res) {
         res.status(500).send('Error processing to-do list: ' + error.message);
     }
 }
-module.exports = GetToDoList, PushToDoList, PostToDoList
+
+module.exports = { GetToDoList, PostToDoList, DeleteToDoList };

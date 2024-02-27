@@ -13,9 +13,7 @@ const aggregateTimeByType = require('./routes/timeByType')
 const app = express();
 const PostPhoneHabit = require('./routes/Habits');
 const dailyUpdate = require('./routes/PhoneDailyAlert');
-const PostToDoList = require('./routes/ToDo');
-const GetToDoList = require('./routes/ToDo');
-const PushToDoList = require('./routes/ToDo');
+const { GetToDoList, PostToDoList, DeleteToDoList } = require('./routes/ToDo'); 
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -29,25 +27,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors()); // Use CORS middleware to allow all origins
 
-
-
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/getHabitForCurrentTime',dailyUpdate);
 // Mount your custom route at the desired path
 app.use('/daily-plan', getDailyPlan);
-
 app.use('/update-daily-plan', updateDailyPlan);
 app.use('/timetable-summary', aggregateTimeByType);
 app.use('/logHabitPhone', PostPhoneHabit);
+app.get('/todo', GetToDoList);
+app.post('/todo', PostToDoList);
+app.delete('/todo', DeleteToDoList);
 
-// app.use('/logToDoData',PostToDoList );
-// // Route to get to-do data
-// app.get('/getToDoData', GetToDoList);
-
-
-// // Route to update to-do data
-// app.put('/updateToDoData', PushToDoList);
 
 app.post('/logHabit', async (req, res) => {
   try {

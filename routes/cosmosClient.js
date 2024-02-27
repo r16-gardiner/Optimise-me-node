@@ -322,91 +322,92 @@ async function deleteOldHabitDocuments() {
   }
 }
 
-const toDoListContainerId = 'ToDoToday'; // Define your to-do list container ID
+const toDoListContainerId = 'ToDoToday'; 
+
+const database = client.database(databaseId);
+const todocontainer = database.container(toDoListContainerId);
 
 async function logToDoData(date, dailyToDoItems) {
-  const database = client.database(databaseId);
-  const container = database.container(toDoListContainerId);
 
-  const newToDoDocument = {
-    date: date,
-    dailyToDoItems: dailyToDoItems,
-  };
+    const newToDoDocument = {
+        date: date,
+        dailyToDoItems: dailyToDoItems,
+    };
 
-  const { resource: createdItem } = await container.items.create(newToDoDocument);
-  console.log('To-Do list logged successfully for date:', date);
+    const { resource: createdItem } = await todocontainer.items.create(newToDoDocument);
+    console.log('To-Do list logged successfully for date:', date);
 }
 
+async function getToDoData(date) {
+    const querySpec = {
+        query: 'SELECT * FROM c WHERE c.date = @date',
+        parameters: [
+            {
+                name: '@date',
+                value: date
+            }
+        ]
+    };
 
-async function getToDoData(startDate, endDate) {
-  const database = client.database(databaseId);
-  const container = database.container(toDoListContainerId);
+    const { resources: items } = await todocontainer.items.query(querySpec).fetchAll();
+    if (items.length === 0) {
+      // Return a structure representing an empty todo list if specific structure is needed
+      // For example, return [{date: date, todos: []}] to indicate no todos for the date
+      return []; // Or return your desired structure for an empty todo list
+  }
 
-  const querySpec = {
-    query: 'SELECT * FROM c WHERE c.date >= @startDate AND c.date <= @endDate',
-    parameters: [
-      { name: '@startDate', value: startDate },
-      { name: '@endDate', value: endDate }
-    ]
-  };
-
-  const { resources: items } = await container.items.query(querySpec).fetchAll();
   return items;
 }
 
-async function updateToDoData(documentId, date, dailyToDoItems) {
-  const database = client.database(databaseId);
-  const container = database.container(toDoListContainerId);
+async function updateToDoData(date, activities) {
+    const existingTodos = await getToDoData(date);
 
-  try {
-    const { resource: existingDocument } = await container.item(documentId, documentId).read();
-    if (existingDocument) {
-      const updatedDocument = {
-        id: existingDocument.id,
-        date: date,
-        dailyToDoItems: dailyToDoItems, // Updated array of tasks
-      };
-
-      const { resource: updated } = await container.item(documentId, documentId).replace(updatedDocument);
-      console.log(`To-Do list document ${documentId} updated successfully.`);
-    } else {
-      console.log(`To-Do list document with ID ${documentId} not found.`);
-      throw new Error(`To-Do list document with ID ${documentId} not found.`);
+    if (!existingTodos) {
+        throw new Error(`Daily plan for date ${date} not found`);
     }
-  } catch (error) {
-    console.error(`Error updating To-Do list document ${documentId}:`, error);
-    throw error;
-  }
+
+    const existingTodo = existingTodos[0];
+    const updatedTodo = { ...existingTodo, dailyToDoItems: activities };
+
+    const { resource: updatedItem } = await client
+    .database(databaseId)
+    .container(toDoListContainerId)
+    .item(existingTodo.id)
+    .replace(updatedTodo);
+    console.log(`Updated daily plan for date: ${date}`);
 }
-/**
- * Merges new to-do items with existing ones, updating completion status if necessary.
- * If a to-do item from the new list matches an item in the existing list by name,
- * the completion status of the existing item is updated. New items are added to the list.
- * 
- * @param {Array} existingToDoItems - Array of existing to-do items.
- * @param {Array} newToDoItems - Array of new to-do items to be merged.
- * @returns {Array} The merged array of to-do items.
- */
+
+async function deleteToDoData(date) {
+    const todosToDelete = await getToDoData(date);
+
+    if (todosToDelete.length === 0) {
+        throw new Error(`No to-do data found for date ${date} to delete`);
+    }
+
+    await Promise.all(todosToDelete.map(async (todo) => {
+        await todocontainer.item(todo.id, todo.id).delete();
+    }));
+
+    console.log(`Deleted daily plan for date: ${date}`);
+}
+
 function mergeToDoItems(existingToDoItems, newToDoItems) {
   const toDoMap = new Map();
 
-  // Add all existing to-do items to the map with their name as the key
   existingToDoItems.forEach(item => {
-      toDoMap.set(item.name, item);
+      toDoMap.set(item.title, item); // Use 'title' as the key
   });
 
-  // Merge or update with new to-do items
   newToDoItems.forEach(newItem => {
-      // If the item exists, update the 'completed' status
-      if (toDoMap.has(newItem.name)) {
-          toDoMap.get(newItem.name).completed = newItem.completed;
+      if (toDoMap.has(newItem.title)) {
+          let currentItem = toDoMap.get(newItem.title);
+          currentItem.completed = newItem.completed; // Update completed status
+          // Merge any other properties you want here
       } else {
-          // If the item doesn't exist, add it to the map
-          toDoMap.set(newItem.name, newItem);
+          toDoMap.set(newItem.title, newItem);
       }
   });
 
-  // Convert the map back to an array and return
   return Array.from(toDoMap.values());
 }
 
@@ -432,6 +433,7 @@ module.exports = {
     updateToDoData,
     getToDoData,
     logToDoData,
-    mergeToDoItems
+    mergeToDoItems,
+    deleteToDoData
 
   };
