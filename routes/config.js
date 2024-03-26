@@ -1,15 +1,19 @@
+require('dotenv').config();
+
 var config = {}
 
-config.endpoint = 'https://rob-dailytimetable.documents.azure.com:443/'
-config.key = 'uNUxZM3aJHcesonCQLmAApkXnIlk8mFeMpJSoJCKU7HhPBMSdS176S4xsJiueFxJQms7BROQM6LwACDbbeYRAA=='
+config.endpoint = process.env.ENDPOINT;
+config.key = process.env.KEY;
 
 config.database = {
-  id: 'ToDoList'
+  id: process.env.DATABASE_ID
 }
 
 config.container = {
-  id: 'Items'
+  id: process.env.CONTAINER_ID
 }
+
+module.exports = config;
 
 // config.items = {
 //   Andersen: {
@@ -88,4 +92,3 @@ config.container = {
 //   }
 // }
 
-module.exports = config
