@@ -4,17 +4,22 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors'); // Add this line
+const bodyParser = require('body-parser');
+require('dotenv').config();
+
 const cosmosClient = require('./routes/cosmosClient');
+const auth = require('./routes/Passwords');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const getDailyPlan = require('./routes/dailyPlan');
 const updateDailyPlan = require('./routes/updateDailyPlan');
 const aggregateTimeByType = require('./routes/timeByType')
-const app = express();
 const PostPhoneHabit = require('./routes/Habits');
 const dailyUpdate = require('./routes/PhoneDailyAlert');
 const { GetToDoList, PostToDoList, DeleteToDoList } = require('./routes/ToDo'); 
-
+const bookingsRouter = require('./routes/bookingRoutes'); 
+// const customersRouter = require('./routes/customerRoutes');
+const app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -24,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(bodyParser.json());
 app.use(cors()); // Use CORS middleware to allow all origins
 
 app.use('/', indexRouter);
@@ -39,6 +44,10 @@ app.get('/todo', GetToDoList);
 app.post('/todo', PostToDoList);
 app.delete('/todo', DeleteToDoList);
 
+//Mum site backend endpoints 
+// app.use('/customers', customersRouter);
+app.use('/login', auth);
+app.use('/bookings', bookingsRouter);
 
 app.post('/logHabit', async (req, res) => {
   try {

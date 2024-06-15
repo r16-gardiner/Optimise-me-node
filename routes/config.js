@@ -10,7 +10,15 @@ config.database = {
 }
 
 config.container = {
-  id: process.env.CONTAINER_ID
+  id: process.env.CONTAINER_ID,
+  bookings: {
+    id: process.env.BOOKINGS_CONTAINER_ID,
+    partitionKey: { kind: "Hash", paths: ["/bookingId"] }
+  },
+  customers: {
+    id: process.env.CUSTOMERS_CONTAINER_ID,
+    partitionKey: { kind: "Hash", paths: ["/customerId"] }
+  },
 }
 
 module.exports = config;
