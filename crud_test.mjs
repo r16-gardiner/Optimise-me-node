@@ -19,6 +19,7 @@ async function testBookings() {
 
   try {
     console.log('Creating Booking...');
+    console.log('sassasa')
     const createResponse = await axios.post(`${baseURL}/bookings`, bookingData);
     const createdBooking = createResponse.data;
     console.log('Create Booking Response:', createdBooking);
