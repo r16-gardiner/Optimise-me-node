@@ -8,7 +8,7 @@ const { createServer } = http;
 const debug = require('debug')('lifetracker:server');
 
 // Get port from environment or use a default value
-const port = normalizePort(process.env.PORT || '8080');
+const port = normalizePort(process.env.PORT || '8888');
 app.set('port', port);
 
 // Create HTTP server using 'createServer' from 'http' module
