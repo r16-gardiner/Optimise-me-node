@@ -160,11 +160,17 @@ async function getBookingShort(id) {
   }
 }
 
-async function getTotalBookings() {
+async function getTotalBookings(year) {
   try {
-    const querySpec = {
-      query: "SELECT VALUE COUNT(1) FROM c WHERE c.type = 'booking' AND c.booked = true"
-    };
+    let query = "SELECT VALUE COUNT(1) FROM c WHERE c.type = 'booking' AND c.booked = true";
+    const parameters = [];
+
+    if (year) {
+      query += " AND c.year = @year";
+      parameters.push({ name: "@year", value: year });
+    }
+
+    const querySpec = { query, parameters };
 
     const { resources: items } = await client
       .database(databaseId)
@@ -173,23 +179,26 @@ async function getTotalBookings() {
       .fetchAll();
 
     console.log("Total Bookings Query Result:", items);
-    if (items.length > 0) {
-      return items[0];
-    } else {
-      return 0;
-    }
+    return items.length > 0 ? items[0] : 0;
   } catch (error) {
     console.error("Error fetching total bookings:", error);
     return 0;
   }
 }
 
-
-async function getTotalRevenue() {
+async function getTotalRevenue(year) {
   try {
-    const querySpec = {
-      query: "SELECT VALUE SUM(c.totalPaid) FROM c WHERE c.type = 'booking' AND c.booked = true"
-    };
+    let query = "SELECT VALUE SUM(c.totalPaid) FROM c WHERE c.type = 'booking' AND c.booked = true";
+    const parameters = [];
+
+    if (year) {
+      query += " AND c.year = @year";
+      parameters.push({ name: "@year", value: year });
+    }
+
+    const querySpec = { query, parameters };
+
+    console.log("Query:", querySpec); // Debugging
 
     const { resources } = await client
       .database(databaseId)
@@ -197,13 +206,15 @@ async function getTotalRevenue() {
       .items.query(querySpec)
       .fetchAll();
 
-    console.log("Total Revenue Query Result:", resources);
-    return resources[0].toFixed(2) || 0; // Ensure a valid number is returned
+    console.log("Resources:", resources); // Debugging
+
+    return resources.length > 0 ? resources[0].toFixed(2) : 0; // Ensure a valid number is returned
   } catch (error) {
     console.error("Error fetching total revenue:", error);
     return 0;
   }
 }
+
 
 
 
@@ -265,6 +276,40 @@ async function getBookingsByYear(year) {
     throw new Error("Error fetching bookings for the specified year");
   }
 }
+async function getPaymentStatusCounts(year) {
+  try {
+    let query = "SELECT c.paymentStatus, COUNT(1) AS count FROM c WHERE c.type = 'booking'";
+    const parameters = [];
+
+    if (year) {
+      query += " AND c.year = @year";
+      parameters.push({ name: "@year", value: year });
+    }
+    query += " GROUP BY c.paymentStatus";
+
+    const querySpec = { query, parameters };
+
+    console.log("Query:", querySpec);
+
+    const { resources: items } = await client
+      .database(databaseId)
+      .container(containerConfig.id)
+      .items.query(querySpec)
+      .fetchAll();
+
+    const paymentStatusCounts = items.reduce((acc, item) => {
+      acc[item.paymentStatus] = item.count;
+      return acc;
+    }, {});
+
+    return paymentStatusCounts;
+  } catch (error) {
+    console.error("Error fetching payment status counts:", error);
+    throw new Error("Error fetching payment status counts");
+  }
+}
+
+
 
 
 module.exports = {
@@ -279,5 +324,6 @@ module.exports = {
   getBookingsByDateRange,
   getTotalRevenue,
   getFrequentCustomers,
-  getBookingsByYear,  
+  getBookingsByYear, 
+  getPaymentStatusCounts 
 };

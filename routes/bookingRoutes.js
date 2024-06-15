@@ -4,9 +4,10 @@ const bookingService = require('./Booking'); // Adjust the path as necessary
 
 // Total Bookings Endpoint
 router.get('/total-bookings', async (req, res) => {
+  const year = parseInt(req.query.year, 10);
   console.log('GET /total-bookings endpoint hit');
   try {
-    const totalBookings = await bookingService.getTotalBookings();
+    const totalBookings = await bookingService.getTotalBookings(isNaN(year) ? undefined : year);
     console.log('Total Bookings:', totalBookings);
     res.status(200).json({ totalBookings });
   } catch (error) {
@@ -14,7 +15,6 @@ router.get('/total-bookings', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 router.get('/bookings-by-year/:year', async (req, res) => {
   try {
       const year = parseInt(req.params.year, 10);
@@ -28,14 +28,24 @@ router.get('/bookings-by-year/:year', async (req, res) => {
       res.status(500).json({ error: error.message });
   }
 });
-
-
-
+router.get('/payment-status-count', async (req, res) => {
+  const year = parseInt(req.query.year, 10);
+  console.log('GET /payment-status-count endpoint hit');
+  try {
+    const paymentStatusCounts = await bookingService.getPaymentStatusCounts(isNaN(year) ? undefined : year);
+    console.log('Payment Status Counts:', paymentStatusCounts);
+    res.status(200).json(paymentStatusCounts);
+  } catch (error) {
+    console.error("Error in /payment-status-count:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // Total Revenue Endpoint
 router.get('/total-revenue', async (req, res) => {
+  const year = parseInt(req.query.year, 10);
   console.log('GET /total-revenue endpoint hit');
   try {
-    const totalRevenue = await bookingService.getTotalRevenue();
+    const totalRevenue = await bookingService.getTotalRevenue(isNaN(year) ? undefined : year);
     console.log('Total Revenue:', totalRevenue);
     res.status(200).json({ totalRevenue });
   } catch (error) {
