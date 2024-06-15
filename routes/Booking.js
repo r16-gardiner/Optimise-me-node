@@ -243,34 +243,26 @@ async function getFrequentCustomers() {
 }
 
 async function getBookingsByYear(year) {
-  const startDateOfYear = new Date(`${year}-01-01T00:00:00Z`);
-  const endDateOfYear = new Date(`${year}-12-31T23:59:59Z`);
-
   const querySpec = {
-      query: `
-          SELECT * FROM c
-          WHERE c.type = 'booking' AND (
-              (c.startDate BETWEEN @startOfYear AND @endOfYear) OR
-              (c.endDate BETWEEN @startOfYear AND @endOfYear) OR
-              (c.startDate <= @startOfYear AND c.endDate >= @endOfYear)
-          )
-      `,
-      parameters: [
-          { name: "@startOfYear", value: startDateOfYear.toISOString() },
-          { name: "@endOfYear", value: endDateOfYear.toISOString() }
-      ]
+    query: `
+      SELECT * FROM c
+      WHERE c.type = 'booking' AND c.year = @year
+    `,
+    parameters: [
+      { name: "@year", value: year }
+    ]
   };
 
   try {
-      const { resources } = await client
-          .database(databaseId)
-          .container(containerConfig.id)
-          .items.query(querySpec)
-          .fetchAll();
-      return resources;
+    const { resources } = await client
+      .database(databaseId)
+      .container(containerConfig.id)
+      .items.query(querySpec)
+      .fetchAll();
+    return resources;
   } catch (error) {
-      console.error("Error fetching bookings for the year:", error);
-      throw new Error("Error fetching bookings for the specified year");
+    console.error("Error fetching bookings for the year:", error);
+    throw new Error("Error fetching bookings for the specified year");
   }
 }
 
