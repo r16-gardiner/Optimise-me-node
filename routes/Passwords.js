@@ -1,17 +1,25 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-
 const secretKey = process.env.SECRETKEY;
-const passwordHash = process.env.MUMHASH;
+const adminPasswordHash = process.env.MUMHASH;
+const karenPasswordHash = process.env.KARENHASH;
 
 // Example user data
-const user = {
-    username: 'Admin',
-    passwordHash: passwordHash // Hashed password
+const users = {
+    Admin: {
+        username: 'Admin',
+        passwordHash: adminPasswordHash,
+        role: 'admin'
+    },
+    Karen: {
+        username: 'Karen',
+        passwordHash: karenPasswordHash,
+        role: 'karen'
+    }
 };
 
 // Middleware to verify the token
@@ -28,6 +36,7 @@ const verifyToken = (req, res, next) => {
         }
 
         req.userId = decoded.id;
+        req.userRole = decoded.role;
         next();
     });
 };
@@ -36,10 +45,10 @@ const verifyToken = (req, res, next) => {
 router.post('/', async (req, res) => {
     const { username, password } = req.body;
 
-    if (username === user.username) {
-        const match = await bcrypt.compare(password, user.passwordHash);
+    if (users[username]) {
+        const match = await bcrypt.compare(password, users[username].passwordHash);
         if (match) {
-            const token = jwt.sign({ id: user.username }, secretKey, { expiresIn: '1h' });
+            const token = jwt.sign({ id: users[username].username, role: users[username].role }, secretKey, { expiresIn: '1h' });
             res.json({ token });
         } else {
             res.status(401).json({ message: 'Invalid password' });
@@ -51,8 +60,19 @@ router.post('/', async (req, res) => {
 
 // Protected route example
 router.get('/admin', verifyToken, (req, res) => {
-    res.json({ message: 'Welcome to the admin dashboard!' });
+    if (req.userRole === 'admin') {
+        res.json({ message: 'Welcome to the admin dashboard!' });
+    } else {
+        res.status(403).json({ message: 'Access denied' });
+    }
 });
 
-module.exports = router
+router.get('/karen', verifyToken, (req, res) => {
+    if (req.userRole === 'karen') {
+        res.json({ message: 'Welcome to the Karen dashboard!' });
+    } else {
+        res.status(403).json({ message: 'Access denied' });
+    }
+});
 
+module.exports = router;
