@@ -101,7 +101,6 @@ async function deleteBooking(id) {
     );
   }
 }
-
 async function getCurrentYearBookingsShort() {
   const currentYear = new Date().getFullYear();
   const startDateOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
@@ -110,7 +109,7 @@ async function getCurrentYearBookingsShort() {
   try {
     const querySpec = {
       query:
-        "SELECT c.bookingId, c.startDate, c.endDate, c.weeklyPrice, c.booked FROM c WHERE c.startDate >= @startOfYear AND c.startDate <= @endOfYear AND c.type = 'booking'",
+        "SELECT c.bookingId, c.startDate, c.endDate, c.weeklyPrice, c.booked, c.paymentStatus, c.weekNumber FROM c WHERE c.startDate >= @startOfYear AND c.startDate <= @endOfYear AND c.type = 'booking'",
       parameters: [
         { name: "@startOfYear", value: startDateOfYear.toISOString() },
         { name: "@endOfYear", value: endDateOfYear.toISOString() },
@@ -123,7 +122,18 @@ async function getCurrentYearBookingsShort() {
       .items.query(querySpec)
       .fetchAll();
 
-    return bookings;
+    // Process the bookings to set paymentStatus to null if not "blocked"
+    const processedBookings = bookings.map(booking => {
+      if (booking.paymentStatus !== 'blocked') {
+        return { ...booking, paymentStatus: null };
+      }
+      return booking;
+    });
+
+    // Sort the processed bookings by weekNumber
+    processedBookings.sort((a, b) => a.weekNumber - b.weekNumber);
+
+    return processedBookings;
   } catch (error) {
     console.error("Error fetching current year bookings:", error);
     throw new Error("Error fetching bookings for the current year");
@@ -217,7 +227,6 @@ async function getTotalRevenue(year) {
 
 
 
-
 async function getBookingsByDateRange(startDate, endDate) {
   const querySpec = {
     query:
@@ -234,9 +243,11 @@ async function getBookingsByDateRange(startDate, endDate) {
     .items.query(querySpec)
     .fetchAll();
 
+  // Sort the items by weekNumber
+  items.sort((a, b) => a.weekNumber - b.weekNumber);
+
   return items;
 }
-
 
 async function getFrequentCustomers() {
   const querySpec = {
@@ -270,12 +281,17 @@ async function getBookingsByYear(year) {
       .container(containerConfig.id)
       .items.query(querySpec)
       .fetchAll();
+
+    // Sort the resources by weekNumber
+    resources.sort((a, b) => a.weekNumber - b.weekNumber);
+
     return resources;
   } catch (error) {
     console.error("Error fetching bookings for the year:", error);
     throw new Error("Error fetching bookings for the specified year");
   }
 }
+
 async function getPaymentStatusCounts(year) {
   try {
     let query = "SELECT c.paymentStatus, COUNT(1) AS count FROM c WHERE c.type = 'booking'";

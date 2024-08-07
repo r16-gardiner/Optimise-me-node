@@ -89,7 +89,9 @@ router.post('/', async (req, res) => {
     req.body.final = parseFloat(req.body.final);
     req.body.totalPaid = parseFloat(req.body.totalPaid);
     req.body.numberOfGuests = parseInt(req.body.numberOfGuests, 10);
-
+    if (typeof req.body.booked === 'string') {
+      req.body.booked = req.body.booked.toLowerCase() === 'true';
+    }
     const booking = await bookingService.createBooking(req.body);
     res.status(201).json(booking);
   } catch (error) {
