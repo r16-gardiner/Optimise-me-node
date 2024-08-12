@@ -59,9 +59,6 @@ async function createBooking(booking) {
   booking.customerId = generateCustomerId(); // Auto-generate human-readable customerId
   booking.type = "booking"; // Ensure type is set for filtering
   booking.id = booking.bookingId; // Ensure bookingId is used as document id
-  booking.bookingForm = booking.bookingForm || {};
-  booking.depositReceipt = booking.depositReceipt || {};
-  booking.finalReceipt = booking.finalReceipt || {};
 
   const { resource: createdItem } = await client
     .database(databaseId)
@@ -75,9 +72,6 @@ async function updateBooking(id, booking) {
   try {
     const partitionKeyValue = booking.bookingId;
     const id = booking.id; // Ensure the id is set correctly
-    booking.bookingForm = booking.bookingForm || {};
-    booking.depositReceipt = booking.depositReceipt || {};
-    booking.finalReceipt = booking.finalReceipt || {};
     
     const { resource: updatedItem } = await client
       .database(databaseId)
