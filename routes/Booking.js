@@ -59,6 +59,7 @@ async function createBooking(booking) {
   booking.customerId = generateCustomerId(); // Auto-generate human-readable customerId
   booking.type = "booking"; // Ensure type is set for filtering
   booking.id = booking.bookingId; // Ensure bookingId is used as document id
+  booking.year = parseInt(booking.year, 10);
 
   const { resource: createdItem } = await client
     .database(databaseId)
@@ -72,7 +73,10 @@ async function updateBooking(id, booking) {
   try {
     const partitionKeyValue = booking.bookingId;
     const id = booking.id; // Ensure the id is set correctly
-    
+    if (booking.year) {
+      booking.year = parseInt(booking.year, 10);
+    }
+
     const { resource: updatedItem } = await client
       .database(databaseId)
       .container(containerConfig.id)
@@ -226,6 +230,37 @@ async function getTotalRevenue(year) {
   }
 }
 
+async function convertAllBookingYearsToInteger() {
+  const querySpec = {
+    query: "SELECT * FROM c WHERE c.type = 'booking' AND IS_STRING(c.year)"
+  };
+
+  try {
+    const { resources: bookings } = await client
+      .database(databaseId)
+      .container(containerConfig.id)
+      .items.query(querySpec)
+      .fetchAll();
+
+    console.log(`Found ${bookings.length} bookings with string years.`);
+
+    for (const booking of bookings) {
+      booking.year = parseInt(booking.year, 10);
+      
+      await client
+        .database(databaseId)
+        .container(containerConfig.id)
+        .item(booking.id, booking.bookingId)
+        .replace(booking);
+    }
+
+    console.log(`Successfully converted ${bookings.length} booking years to integers.`);
+    return bookings.length;
+  } catch (error) {
+    console.error("Error converting booking years to integers:", error);
+    throw error;
+  }
+}
 
 
 async function getBookingsByDateRange(startDate, endDate) {
@@ -342,5 +377,6 @@ module.exports = {
   getTotalRevenue,
   getFrequentCustomers,
   getBookingsByYear, 
-  getPaymentStatusCounts 
+  getPaymentStatusCounts,
+  convertAllBookingYearsToInteger,
 };

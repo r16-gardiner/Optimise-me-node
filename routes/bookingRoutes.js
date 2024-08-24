@@ -173,5 +173,14 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
+router.post('/convert-all-years-to-integer', async (req, res) => {
+  try {
+    const convertedCount = await bookingService.convertAllBookingYearsToInteger();
+    res.status(200).json({ message: `Successfully converted ${convertedCount} booking years to integers.` });
+  } catch (error) {
+    console.error("Error in /convert-all-years-to-integer:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
