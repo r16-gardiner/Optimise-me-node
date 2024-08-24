@@ -108,8 +108,13 @@ async function deleteBooking(id) {
 }
 async function getCurrentYearBookingsShort() {
   const currentYear = new Date().getFullYear();
+  const nextYear = currentYear + 1;
+
   const startDateOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-  const endDateOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+  const endDateOfYear = new Date(`${nextYear}-12-31T23:59:59.999Z`);
+
+  // const startDateOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
+  // const endDateOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
 
   try {
     const querySpec = {
