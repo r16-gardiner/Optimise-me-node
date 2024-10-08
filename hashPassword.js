@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const plainPassword = 'fill in here'
+const plainPassword = 'Mowshurst2024#'
 bcrypt.hash(plainPassword, saltRounds, function(err, hash) {
     if (err) {
         console.error(err);
